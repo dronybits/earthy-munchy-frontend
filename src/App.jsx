@@ -33,7 +33,7 @@ function App() {
     setIsLoading(true);
 
     try {
-      const res = await fetch('https://earthy-backend.onrender.com/chat', { // Updated to match your successful health check URL
+      const res = await fetch('https://earthy-munchy-assistant.onrender.com/chat', { // Updated to match your successful health check URL
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: msg }),
