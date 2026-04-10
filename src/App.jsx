@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, User, Zap, ArrowRight } from 'lucide-react';
+import { Sparkles, User, Zap, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const CHIPS = ["Why NMR tested? 🍯", "C5 Cinnamon vs Regular 🌶️", "Is it really wild? 🌿", "WhatsApp Support 📱"];
@@ -15,24 +15,34 @@ function App() {
   useEffect(() => { scrollRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
   const handleSend = async (text) => {
-    const messageToSend = text || input;
-    if (!messageToSend.trim()) return;
+    // 1. Prioritize the chip text, fallback to input, and ensure it's a string
+    const messageToSend = (typeof text === 'string' ? text : input).trim();
 
-    const newMessages = [...messages, { role: 'user', text: messageToSend }];
-    setMessages(newMessages);
+    // 2. Stop if input is empty or if the AI is currently thinking
+    if (!messageToSend || isLoading) return;
+
+    // 3. Immediately update UI and clear input
+    setMessages(prev => [...prev, { role: 'user', text: messageToSend }]);
     setInput('');
     setIsLoading(true);
 
     try {
+      // 4. Updated URL to match your working backend
       const response = await fetch('https://earthy-munchy-assistant.onrender.com/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: messageToSend }),
       });
+
+      if (!response.ok) throw new Error('Network error');
+
       const data = await response.json();
-      setMessages([...newMessages, { role: 'ai', text: data.response }]);
+
+      // 5. Safely append the AI response to the LATEST state
+      setMessages(prev => [...prev, { role: 'ai', text: data.response }]);
     } catch (error) {
-      setMessages([...newMessages, { role: 'ai', text: "Oof, the server ghosted us. Check your connection? 💀" }]);
+      console.error("Fetch Error:", error);
+      setMessages(prev => [...prev, { role: 'ai', text: "Oof, the server ghosted us. Check your connection? 💀" }]);
     } finally {
       setIsLoading(false);
     }
@@ -63,7 +73,6 @@ function App() {
                 className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {msg.role === 'user' ? (
-                  /* USER QUESTION STYLE: Bold, Punchy, Neo-Brutalism */
                   <div className="relative group">
                     <div className="bg-[#ccff00] text-black px-6 py-4 rounded-[2rem] rounded-tr-none font-bold text-lg shadow-[8px_8px_0px_0px_rgba(255,255,255,0.1)] border-2 border-black max-w-sm">
                       {msg.text}
@@ -73,15 +82,14 @@ function App() {
                     </div>
                   </div>
                 ) : (
-                  /* AI ANSWER STYLE: Premium Glassmorphism */
                   <div className="flex items-start gap-4 max-w-[90%] md:max-w-[80%]">
                     <div className="mt-2 bg-[#ccff00] p-2 rounded-xl shrink-0 shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)]">
                       <Sparkles size={18} className="text-black" />
                     </div>
                     <div className="bg-[#1a1a1a] border border-white/10 p-6 rounded-[2.5rem] rounded-tl-none backdrop-blur-xl shadow-2xl">
-                      <p className="text-gray-200 leading-relaxed text-md font-medium">
+                      <div className="text-gray-200 leading-relaxed text-md font-medium whitespace-pre-wrap">
                         {msg.text}
-                      </p>
+                      </div>
                       <div className="mt-4 flex gap-2">
                         <span className="h-1 w-8 bg-[#ccff00] rounded-full opacity-50"></span>
                         <span className="h-1 w-3 bg-[#ccff00] rounded-full opacity-30"></span>
@@ -104,39 +112,44 @@ function App() {
           <div ref={scrollRef} />
         </div>
 
-        {/* Input & Chips Section */}
-        <div className="bg-[#121212]/80 backdrop-blur-2xl p-6 rounded-[3rem] border border-white/5 shadow-[0_-20px_40px_rgba(0,0,0,0.5)]">
-          <div className="flex gap-2 overflow-x-auto no-scrollbar mb-4">
-            {CHIPS.map((chip, i) => (
+        {/* Missing Footer / Input Section Added Here */}
+        <footer className="w-full shrink-0">
+          {/* Quick Queries (Chips) */}
+          <div className="flex gap-2 overflow-x-auto no-scrollbar mb-4 pb-2 px-2">
+            {CHIPS.map((chip, idx) => (
               <button
-                key={i}
+                key={idx}
+                disabled={isLoading}
                 onClick={() => handleSend(chip)}
-                className="px-5 py-2.5 bg-white/5 hover:bg-[#ccff00] hover:text-black rounded-full border border-white/10 text-[11px] font-black uppercase tracking-wider transition-all duration-300 whitespace-nowrap active:scale-90"
+                className="whitespace-nowrap px-4 py-2 bg-[#1a1a1a] border border-white/10 rounded-full text-xs font-bold hover:bg-[#ccff00] hover:text-black hover:border-[#ccff00] transition-all disabled:opacity-50 disabled:pointer-events-none"
               >
                 {chip}
               </button>
             ))}
           </div>
 
-          <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="relative group">
+          {/* Input Form */}
+          <form
+            onSubmit={(e) => { e.preventDefault(); handleSend(); }}
+            className="relative px-2"
+          >
             <input
               type="text"
               value={input}
+              disabled={isLoading}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Spill the tea on honey..."
-              className="w-full bg-[#1a1a1a] p-6 rounded-[2rem] border-2 border-white/5 focus:border-[#ccff00] outline-none transition-all pr-20 text-md font-medium placeholder:text-gray-600"
+              placeholder={isLoading ? "Vibing with the servers..." : "Type your message..."}
+              className="w-full bg-[#1a1a1a] text-white p-5 pr-16 rounded-[2rem] border-2 border-white/10 focus:border-[#ccff00] outline-none transition-all placeholder:text-gray-600 disabled:opacity-50"
             />
             <button
-              className="absolute right-3 top-3 bottom-3 px-5 bg-[#ccff00] text-black rounded-2xl font-black hover:scale-105 active:scale-95 transition-all flex items-center gap-2 group-focus-within:shadow-[0_0_20px_rgba(204,255,0,0.4)]"
+              type="submit"
+              disabled={isLoading || !input.trim()}
+              className="absolute right-4 top-1/2 -translate-y-1/2 bg-[#ccff00] text-black p-3 rounded-full hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:scale-100 disabled:hover:scale-100"
             >
-              <span className="hidden md:block text-xs uppercase">Send</span>
-              <ArrowRight size={18} strokeWidth={3} />
+              <ArrowRight size={20} strokeWidth={3} />
             </button>
           </form>
-          <p className="text-[9px] text-center text-gray-600 mt-4 font-bold tracking-[0.2em] uppercase">
-            Native Sourced • Verified Pure • Bengaluru, IN
-          </p>
-        </div>
+        </footer>
       </main>
     </div>
   );

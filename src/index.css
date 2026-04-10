@@ -2,7 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Add this to test if CSS is loading */
-body {
-  background-color: #FDFBF7 !important;
+/* Custom Base Styles */
+@layer base {
+
+  html,
+  body {
+    @apply m-0 p-0 overflow-x-hidden;
+    /* Remove !important once you confirm it works to allow Tailwind classes to function */
+    background-color: #0a0a0a;
+    color: white;
+  }
+}
+
+/* Scrollbar customization for the "no-scrollbar" look in your App.jsx */
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }
