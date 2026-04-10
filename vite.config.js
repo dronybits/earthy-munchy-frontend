@@ -3,5 +3,6 @@ import react from '@vitejs/react'
 
 export default defineConfig({
   plugins: [react()],
-  base: './', // This tells Vite to use relative paths
+  // Ensures assets are linked relatively, which is safer for Vercel deployments
+  base: './',
 })
