@@ -1,13 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, User, Zap, ArrowRight, MessageCircle, X, Minus } from 'lucide-react';
+import { Send, Sparkles, User, Zap, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const CHIPS = ["NMR Tested? 🍯", "C5 Cinnamon 🌶️", "Support 📱"];
+const CHIPS = ["Why NMR tested? 🍯", "C5 Cinnamon vs Regular 🌶️", "Is it really wild? 🌿", "WhatsApp Support 📱"];
 
 function App() {
-  const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { role: 'ai', text: "Namaste! 🙏 Earthy Munchy vibes here. How can I help you today?" }
+    { role: 'ai', text: "Yo! Welcome to Earthy Munchy. We're serving nothing but pure vibes and NMR-tested goodness. What's the move?" }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -33,107 +32,112 @@ function App() {
       const data = await response.json();
       setMessages([...newMessages, { role: 'ai', text: data.response }]);
     } catch (error) {
-      setMessages([...newMessages, { role: 'ai', text: "Server ghosted us. Try again? 💀" }]);
+      setMessages([...newMessages, { role: 'ai', text: "Oof, the server ghosted us. Check your connection? 💀" }]);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 font-sans selection:bg-[#ccff00] selection:text-black">
+    <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col items-center p-4 md:p-8 font-sans selection:bg-[#ccff00] selection:text-black">
 
-      {/* 1. CHAT LAUNCHER BUTTON */}
-      <AnimatePresence>
-        {!isOpen && (
-          <motion.button
-            initial={{ scale: 0, rotate: -45 }}
-            animate={{ scale: 1, rotate: 0 }}
-            exit={{ scale: 0, rotate: 45 }}
-            onClick={() => setIsOpen(true)}
-            className="bg-[#ccff00] p-4 rounded-2xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] border-2 border-black flex items-center justify-center text-black group"
-          >
-            <div className="absolute -top-2 -right-2 bg-red-500 w-5 h-5 rounded-full border-2 border-black animate-bounce" />
-            <MessageCircle size={28} strokeWidth={3} className="group-hover:scale-110 transition-transform" />
-          </motion.button>
-        )}
-      </AnimatePresence>
+      {/* Floating Header */}
+      <header className="w-full max-w-2xl bg-[#ccff00] p-5 rounded-3xl mb-8 flex justify-between items-center border-b-[6px] border-r-[6px] border-black shadow-[10px_10px_0px_0px_rgba(255,255,255,0.05)] transform -rotate-1">
+        <div>
+          <h1 className="text-black font-black text-3xl tracking-tighter leading-none">EARTHY MUNCHY</h1>
+          <p className="text-black/60 text-[10px] font-bold uppercase tracking-widest mt-1">Wild by origin • Honest by nature</p>
+        </div>
+        <Zap className="text-black fill-black animate-pulse" size={28} />
+      </header>
 
-      {/* 2. CHAT WINDOW (Mobile Size) */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 100, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 100, scale: 0.9 }}
-            className="w-[380px] h-[600px] max-h-[85vh] bg-[#0a0a0a] rounded-[2.5rem] border-2 border-white/10 shadow-2xl flex flex-col overflow-hidden"
-          >
-            {/* Header - Fixed */}
-            <header className="bg-[#ccff00] p-4 flex justify-between items-center border-b-4 border-black">
-              <div className="flex items-center gap-3">
-                <div className="bg-black p-1.5 rounded-lg">
-                  <Zap size={18} className="text-[#ccff00] fill-[#ccff00]" />
-                </div>
-                <div>
-                  <h1 className="text-black font-black text-lg tracking-tight leading-none">EARTHY MUNCHY</h1>
-                  <span className="text-black/60 text-[9px] font-bold uppercase tracking-wider">Online • Pure Vibes</span>
-                </div>
-              </div>
-              <button onClick={() => setIsOpen(false)} className="text-black hover:bg-black/10 p-1 rounded-lg transition-colors">
-                <X size={24} strokeWidth={3} />
-              </button>
-            </header>
-
-            {/* Chat Area - Scrollable */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-6 no-scrollbar bg-[#0f0f0f]">
-              {messages.map((msg, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, x: msg.role === 'user' ? 20 : -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div className={`p-4 max-w-[85%] text-sm font-medium ${msg.role === 'user'
-                    ? 'bg-[#ccff00] text-black rounded-2xl rounded-tr-none shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)] border border-black'
-                    : 'bg-[#1a1a1a] text-gray-200 rounded-2xl rounded-tl-none border border-white/5'
-                    }`}>
-                    {msg.text}
+      {/* Chat Container */}
+      <main className="w-full max-w-2xl flex-1 flex flex-col gap-6 overflow-hidden">
+        <div className="flex-1 overflow-y-auto px-2 space-y-8 no-scrollbar pb-10">
+          <AnimatePresence mode='popLayout'>
+            {messages.map((msg, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: msg.role === 'user' ? 50 : -50, y: 20 }}
+                animate={{ opacity: 1, x: 0, y: 0 }}
+                transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                {msg.role === 'user' ? (
+                  /* USER QUESTION STYLE: Bold, Punchy, Neo-Brutalism */
+                  <div className="relative group">
+                    <div className="bg-[#ccff00] text-black px-6 py-4 rounded-[2rem] rounded-tr-none font-bold text-lg shadow-[8px_8px_0px_0px_rgba(255,255,255,0.1)] border-2 border-black max-w-sm">
+                      {msg.text}
+                    </div>
+                    <div className="absolute -top-3 -right-2 bg-white text-black p-1 rounded-full border-2 border-black">
+                      <User size={14} strokeWidth={3} />
+                    </div>
                   </div>
-                </motion.div>
-              ))}
-              {isLoading && <div className="text-[#ccff00] text-[10px] font-black tracking-widest animate-pulse">REASONING...</div>}
-              <div ref={scrollRef} />
-            </div>
+                ) : (
+                  /* AI ANSWER STYLE: Premium Glassmorphism */
+                  <div className="flex items-start gap-4 max-w-[90%] md:max-w-[80%]">
+                    <div className="mt-2 bg-[#ccff00] p-2 rounded-xl shrink-0 shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)]">
+                      <Sparkles size={18} className="text-black" />
+                    </div>
+                    <div className="bg-[#1a1a1a] border border-white/10 p-6 rounded-[2.5rem] rounded-tl-none backdrop-blur-xl shadow-2xl">
+                      <p className="text-gray-200 leading-relaxed text-md font-medium">
+                        {msg.text}
+                      </p>
+                      <div className="mt-4 flex gap-2">
+                        <span className="h-1 w-8 bg-[#ccff00] rounded-full opacity-50"></span>
+                        <span className="h-1 w-3 bg-[#ccff00] rounded-full opacity-30"></span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            ))}
+          </AnimatePresence>
+          {isLoading && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-2 items-center text-[#ccff00] font-black italic tracking-widest text-xs ml-14">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#ccff00] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#ccff00]"></span>
+              </span>
+              REASONING...
+            </motion.div>
+          )}
+          <div ref={scrollRef} />
+        </div>
 
-            {/* Input & Chips - Fixed Bottom */}
-            <div className="p-4 bg-[#121212] border-t border-white/5">
-              <div className="flex gap-2 overflow-x-auto no-scrollbar mb-3">
-                {CHIPS.map((chip, i) => (
-                  <button
-                    key={i}
-                    onClick={() => handleSend(chip)}
-                    className="px-3 py-1.5 bg-white/5 hover:bg-[#ccff00] hover:text-black rounded-full border border-white/10 text-[9px] font-black uppercase tracking-wider transition-all whitespace-nowrap"
-                  >
-                    {chip}
-                  </button>
-                ))}
-              </div>
+        {/* Input & Chips Section */}
+        <div className="bg-[#121212]/80 backdrop-blur-2xl p-6 rounded-[3rem] border border-white/5 shadow-[0_-20px_40px_rgba(0,0,0,0.5)]">
+          <div className="flex gap-2 overflow-x-auto no-scrollbar mb-4">
+            {CHIPS.map((chip, i) => (
+              <button
+                key={i}
+                onClick={() => handleSend(chip)}
+                className="px-5 py-2.5 bg-white/5 hover:bg-[#ccff00] hover:text-black rounded-full border border-white/10 text-[11px] font-black uppercase tracking-wider transition-all duration-300 whitespace-nowrap active:scale-90"
+              >
+                {chip}
+              </button>
+            ))}
+          </div>
 
-              <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="relative">
-                <input
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask anything..."
-                  className="w-full bg-[#1a1a1a] p-4 rounded-xl border border-white/10 focus:border-[#ccff00] outline-none transition-all pr-12 text-sm"
-                />
-                <button className="absolute right-2 top-2 bottom-2 px-3 bg-[#ccff00] text-black rounded-lg hover:scale-105 active:scale-95 transition-all">
-                  <ArrowRight size={18} strokeWidth={3} />
-                </button>
-              </form>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="relative group">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Spill the tea on honey..."
+              className="w-full bg-[#1a1a1a] p-6 rounded-[2rem] border-2 border-white/5 focus:border-[#ccff00] outline-none transition-all pr-20 text-md font-medium placeholder:text-gray-600"
+            />
+            <button
+              className="absolute right-3 top-3 bottom-3 px-5 bg-[#ccff00] text-black rounded-2xl font-black hover:scale-105 active:scale-95 transition-all flex items-center gap-2 group-focus-within:shadow-[0_0_20px_rgba(204,255,0,0.4)]"
+            >
+              <span className="hidden md:block text-xs uppercase">Send</span>
+              <ArrowRight size={18} strokeWidth={3} />
+            </button>
+          </form>
+          <p className="text-[9px] text-center text-gray-600 mt-4 font-bold tracking-[0.2em] uppercase">
+            Native Sourced • Verified Pure • Bengaluru, IN
+          </p>
+        </div>
+      </main>
     </div>
   );
 }
