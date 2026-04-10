@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Add this to test if CSS is loading */
+body {
+  background-color: #FDFBF7 !important;
+}
