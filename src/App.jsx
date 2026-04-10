@@ -1,20 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, User, Zap, X, Sparkles, ArrowRight, MessageSquare, ShieldCheck, HelpCircle } from 'lucide-react';
+import { Send, Sparkles, User, Zap, ArrowRight, MessageCircle, X, Minus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const QUICK_QUERIES = [
-  "Why is NMR testing important? 🍯",
-  "Explain C5 Ceylon Cinnamon 🌶️",
-  "How to track my order? 📦",
-  "Are your spices organic? 🌱"
-];
-
-// ... (Keep your imports and QUICK_QUERIES constant as they are)
+const CHIPS = ["NMR Tested? 🍯", "C5 Cinnamon 🌶️", "Support 📱"];
 
 function App() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { role: 'ai', text: "Welcome to Earthy Munchy.\n\nI am here to assist you in discovering the purity of our natural offerings. How may I help you today?" }
+    { role: 'ai', text: "Namaste! 🙏 Earthy Munchy vibes here. How can I help you today?" }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -23,122 +16,121 @@ function App() {
   useEffect(() => { scrollRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
   const handleSend = async (text) => {
-    const msg = text || input;
-    if (!msg.trim() || isLoading) return; // Prevent double-sending
+    const messageToSend = text || input;
+    if (!messageToSend.trim()) return;
 
-    // 1. Update UI immediately with user message
-    const userMessage = { role: 'user', text: msg };
-    setMessages(prev => [...prev, userMessage]);
+    const newMessages = [...messages, { role: 'user', text: messageToSend }];
+    setMessages(newMessages);
     setInput('');
     setIsLoading(true);
 
     try {
-      const res = await fetch('https://earthy-munchy-assistant.onrender.com/chat', { // Updated to match your successful health check URL
+      const response = await fetch('https://earthy-munchy-assistant.onrender.com/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: msg }),
+        body: JSON.stringify({ message: messageToSend }),
       });
-
-      if (!res.ok) throw new Error('Network response was not ok');
-
-      const data = await res.json();
-
-      // 2. Functional update to avoid losing messages
-      setMessages(prev => [...prev, { role: 'ai', text: data.response }]);
-    } catch (e) {
-      console.error("Connection Error:", e);
-      setMessages(prev => [...prev, {
-        role: 'ai',
-        text: "I apologize, I am unable to connect. Our experts are currently tending to the hives—please try again in a moment."
-      }]);
+      const data = await response.json();
+      setMessages([...newMessages, { role: 'ai', text: data.response }]);
+    } catch (error) {
+      setMessages([...newMessages, { role: 'ai', text: "Server ghosted us. Try again? 💀" }]);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="fixed bottom-8 right-8 z-50 font-sans antialiased">
-      {/* ... (Launcher remains the same) */}
+    <div className="fixed bottom-6 right-6 z-50 font-sans selection:bg-[#ccff00] selection:text-black">
 
+      {/* 1. CHAT LAUNCHER BUTTON */}
+      <AnimatePresence>
+        {!isOpen && (
+          <motion.button
+            initial={{ scale: 0, rotate: -45 }}
+            animate={{ scale: 1, rotate: 0 }}
+            exit={{ scale: 0, rotate: 45 }}
+            onClick={() => setIsOpen(true)}
+            className="bg-[#ccff00] p-4 rounded-2xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] border-2 border-black flex items-center justify-center text-black group"
+          >
+            <div className="absolute -top-2 -right-2 bg-red-500 w-5 h-5 rounded-full border-2 border-black animate-bounce" />
+            <MessageCircle size={28} strokeWidth={3} className="group-hover:scale-110 transition-transform" />
+          </motion.button>
+        )}
+      </AnimatePresence>
+
+      {/* 2. CHAT WINDOW (Mobile Size) */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            /* ... (Framer Motion props) */
-            className="w-[460px] h-[750px] max-h-[85vh] bg-[#FDFBF7] rounded-[3rem] shadow-[0_50px_100px_rgba(0,0,0,0.25)] flex flex-col overflow-hidden border border-[#D4C3A3]/30"
+            initial={{ opacity: 0, y: 100, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 100, scale: 0.9 }}
+            className="w-[380px] h-[600px] max-h-[85vh] bg-[#0a0a0a] rounded-[2.5rem] border-2 border-white/10 shadow-2xl flex flex-col overflow-hidden"
           >
-            {/* Header ... */}
+            {/* Header - Fixed */}
+            <header className="bg-[#ccff00] p-4 flex justify-between items-center border-b-4 border-black">
+              <div className="flex items-center gap-3">
+                <div className="bg-black p-1.5 rounded-lg">
+                  <Zap size={18} className="text-[#ccff00] fill-[#ccff00]" />
+                </div>
+                <div>
+                  <h1 className="text-black font-black text-lg tracking-tight leading-none">EARTHY MUNCHY</h1>
+                  <span className="text-black/60 text-[9px] font-bold uppercase tracking-wider">Online • Pure Vibes</span>
+                </div>
+              </div>
+              <button onClick={() => setIsOpen(false)} className="text-black hover:bg-black/10 p-1 rounded-lg transition-colors">
+                <X size={24} strokeWidth={3} />
+              </button>
+            </header>
 
-            {/* CHAT AREA */}
-            <div className="flex-1 overflow-y-auto px-8 py-10 space-y-12 no-scrollbar">
+            {/* Chat Area - Scrollable */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-6 no-scrollbar bg-[#0f0f0f]">
               {messages.map((msg, i) => (
-                <div key={i} className={`flex flex-col ${msg.role === 'user' ? 'items-end pl-14' : 'items-start pr-14'}`}>
-                  <div className={`flex items-center gap-2 mb-3 ${msg.role === 'user' ? 'flex-row-reverse text-[#6D5E4D]' : 'text-[#8B7355]'}`}>
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">
-                      {msg.role === 'user' ? 'Member Inquiry' : 'Expert Response'}
-                    </span>
-                  </div>
-                  <div className={`p-8 rounded-[2rem] leading-relaxed text-[15px] shadow-sm border ${msg.role === 'user'
-                    ? 'bg-[#EAE7E0] text-[#1a1a1a] rounded-tr-none border-[#D4C3A3]/50'
-                    : 'bg-white text-[#333] rounded-tl-none border-white shadow-[0_15px_50px_rgba(0,0,0,0.03)] font-medium'
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: msg.role === 'user' ? 20 : -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div className={`p-4 max-w-[85%] text-sm font-medium ${msg.role === 'user'
+                    ? 'bg-[#ccff00] text-black rounded-2xl rounded-tr-none shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)] border border-black'
+                    : 'bg-[#1a1a1a] text-gray-200 rounded-2xl rounded-tl-none border border-white/5'
                     }`}>
-                    <div className="whitespace-pre-wrap">{msg.text}</div>
+                    {msg.text}
                   </div>
-                </div>
+                </motion.div>
               ))}
-
-              {isLoading && (
-                <div className="flex items-center gap-2 text-[#D4C3A3] text-[10px] font-black tracking-widest pl-2">
-                  <div className="flex gap-1">
-                    <span className="animate-bounce">.</span>
-                    <span className="animate-bounce [animation-delay:0.2s]">.</span>
-                    <span className="animate-bounce [animation-delay:0.4s]">.</span>
-                  </div>
-                  <span>CONSULTING SOURCES...</span>
-                </div>
-              )}
+              {isLoading && <div className="text-[#ccff00] text-[10px] font-black tracking-widest animate-pulse">REASONING...</div>}
               <div ref={scrollRef} />
             </div>
 
-            {/* FOOTER */}
-            <footer className="p-8 bg-white border-t border-[#D4C3A3]/10">
-              <div className="flex gap-2 overflow-x-auto no-scrollbar mb-6 pb-2">
-                {QUICK_QUERIES.map((q, i) => (
+            {/* Input & Chips - Fixed Bottom */}
+            <div className="p-4 bg-[#121212] border-t border-white/5">
+              <div className="flex gap-2 overflow-x-auto no-scrollbar mb-3">
+                {CHIPS.map((chip, i) => (
                   <button
                     key={i}
-                    disabled={isLoading}
-                    onClick={() => handleSend(q)}
-                    className="flex items-center gap-2 px-5 py-3 bg-[#F9F7F2] border border-[#D4C3A3]/50 rounded-2xl text-[11px] font-bold text-[#1a1a1a] hover:bg-[#1a1a1a] hover:text-[#ccff00] disabled:opacity-50 transition-all whitespace-nowrap active:scale-95 shadow-sm"
+                    onClick={() => handleSend(chip)}
+                    className="px-3 py-1.5 bg-white/5 hover:bg-[#ccff00] hover:text-black rounded-full border border-white/10 text-[9px] font-black uppercase tracking-wider transition-all whitespace-nowrap"
                   >
-                    <HelpCircle size={12} />
-                    {q}
+                    {chip}
                   </button>
                 ))}
               </div>
 
-              <div className="relative">
-                <textarea
-                  rows="2"
+              <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="relative">
+                <input
+                  type="text"
                   value={input}
-                  disabled={isLoading}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder={isLoading ? "Please wait..." : "How can we assist you today?"}
-                  className="w-full bg-[#F5F5F5] p-6 rounded-2xl border-2 border-transparent focus:border-[#1a1a1a] focus:bg-white outline-none transition-all text-[16px] font-medium pr-16 resize-none shadow-inner disabled:cursor-not-allowed"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSend();
-                    }
-                  }}
+                  placeholder="Ask anything..."
+                  className="w-full bg-[#1a1a1a] p-4 rounded-xl border border-white/10 focus:border-[#ccff00] outline-none transition-all pr-12 text-sm"
                 />
-                <button
-                  onClick={() => handleSend()}
-                  disabled={isLoading || !input.trim()}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-[#1a1a1a] text-[#ccff00] p-4 rounded-xl flex items-center justify-center hover:scale-110 active:scale-90 shadow-xl transition-all disabled:grayscale disabled:opacity-50 disabled:scale-100"
-                >
-                  <ArrowRight size={22} strokeWidth={3} />
+                <button className="absolute right-2 top-2 bottom-2 px-3 bg-[#ccff00] text-black rounded-lg hover:scale-105 active:scale-95 transition-all">
+                  <ArrowRight size={18} strokeWidth={3} />
                 </button>
-              </div>
-            </footer>
+              </form>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
